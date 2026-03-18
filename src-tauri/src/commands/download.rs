@@ -23,29 +23,7 @@ pub struct DependencyStatus {
     pub ffmpeg: bool,
 }
 
-/// Find yt-dlp binary — checks system PATH, /usr/local/bin, and ~/.local/bin (pipx)
-fn find_ytdlp() -> String {
-    let candidates = [
-        "yt-dlp",
-        "/usr/local/bin/yt-dlp",
-        "/usr/bin/yt-dlp",
-    ];
-    for c in &candidates {
-        if Command::new(c).arg("--version")
-            .stdout(Stdio::null()).stderr(Stdio::null())
-            .status().map(|s| s.success()).unwrap_or(false)
-        {
-            return c.to_string();
-        }
-    }
-    if let Some(home) = dirs::home_dir() {
-        let p = home.join(".local").join("bin").join("yt-dlp");
-        if p.exists() {
-            return p.to_string_lossy().to_string();
-        }
-    }
-    "yt-dlp".to_string()
-}
+use super::utils::find_ytdlp;
 
 fn emit_progress(window: &WebviewWindow, progress: DownloadProgress) {
     let _ = window.emit("download_progress", progress);

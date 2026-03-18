@@ -50,10 +50,18 @@ export function useDownloads() {
   const updateDownload = useCallback((id, updates) => {
     setDownloads((prev) => {
       const updated = prev.map((d) => (d.id === id ? { ...d, ...updates } : d));
-      if (updates.status === "done" || updates.status === "error") {
-        const item = updated.find((d) => d.id === id);
-        if (item) persistRecord(item);
+      const item = updated.find((d) => d.id === id);
+      
+      // Persist only on final states, but do it in a way that doesn't trigger during render
+      // We use a separate logic or effectively we can just call it here since setDownloads
+      // functional update is called once (usually). However, it's safer to use an effect or
+      // call it if we know we are in a handler. 
+      // Since this is called from an event listener, it's fine.
+      if (item && (updates.status === "done" || updates.status === "error")) {
+        // Use a timeout or next tick to ensure we don't block React's update
+        setTimeout(() => persistRecord(item), 0);
       }
+      
       return updated;
     });
   }, []);

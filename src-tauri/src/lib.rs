@@ -2,6 +2,7 @@ mod commands {
     pub mod download;
     pub mod file;
     pub mod search;
+    pub mod utils;
 }
 
 use commands::download::*;

@@ -16,35 +16,7 @@ pub struct MediaInfo {
     pub source: Option<String>,
 }
 
-/// Find yt-dlp binary across common install locations including pipx
-fn find_ytdlp() -> String {
-    let candidates = [
-        "yt-dlp",                          // system PATH
-        "/usr/local/bin/yt-dlp",           // manual install
-        "/usr/bin/yt-dlp",                 // apt install
-    ];
-
-    for c in &candidates {
-        if Command::new(c).arg("--version")
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .status().map(|s| s.success()).unwrap_or(false)
-        {
-            return c.to_string();
-        }
-    }
-
-    // Try home dir based paths (pipx installs to ~/.local/bin)
-    if let Some(home) = dirs::home_dir() {
-        let pipx_path = home.join(".local").join("bin").join("yt-dlp");
-        if pipx_path.exists() {
-            return pipx_path.to_string_lossy().to_string();
-        }
-    }
-
-    // Last resort: return plain name and let OS resolve it
-    "yt-dlp".to_string()
-}
+use super::utils::find_ytdlp;
 
 fn ytdlp_json(args: &[&str]) -> Result<serde_json::Value> {
     let bin = find_ytdlp();

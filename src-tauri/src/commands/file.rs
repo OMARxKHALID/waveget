@@ -41,11 +41,16 @@ fn save_history(records: &[DownloadRecord]) {
 #[tauri::command]
 pub async fn get_downloads() -> Result<Vec<DownloadRecord>, String> {
     let mut records = load_history();
+    let mut changed = false;
     for r in &mut records {
         if r.status == "downloading" || r.status == "converting" {
             r.status = "error".into();
             r.error = Some("Interrupted (app was closed)".into());
+            changed = true;
         }
+    }
+    if changed {
+        save_history(&records);
     }
     Ok(records)
 }
